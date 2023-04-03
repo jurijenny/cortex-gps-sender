@@ -1,0 +1,72 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFrameworks>net6.0-android;net6.0-ios</TargetFrameworks>
+        <OutputType>Exe</OutputType>
+        <RootNamespace>ei8.Cortex.Gps.Sender</RootNamespace>
+        <UseMaui>true</UseMaui>
+        <SingleProject>true</SingleProject>
+        <ImplicitUsings>enable</ImplicitUsings>
+
+        <!-- Display name -->
+        <ApplicationTitle>GPS Sender</ApplicationTitle>
+
+        <!-- App Identifier -->
+        <ApplicationId>ei8.Cortex.Gps.Sender</ApplicationId>
+        <ApplicationIdGuid>490794b1-cc50-4047-b883-84e278c5dc95</ApplicationIdGuid>
+
+        <!-- Versions -->
+        <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+        <ApplicationVersion>1</ApplicationVersion>
+
+        <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">14.2</SupportedOSPlatformVersion>
+        <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">14.0</SupportedOSPlatformVersion>
+        <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>
+        <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
+        <TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
+        <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'tizen'">6.5</SupportedOSPlatformVersion>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0-ios|AnyCPU'">
+      <CreatePackage>false</CreatePackage>
+    </PropertyGroup>
+	
+	<PropertyGroup Condition="$(TargetFramework.Contains('-android')) and '$(Configuration)' == 'Release'">
+        <AndroidKeyStore>True</AndroidKeyStore>
+        <AndroidSigningKeyStore>C:\Users\me353\myapp.keystore</AndroidSigningKeyStore>
+        <AndroidSigningKeyAlias>key</AndroidSigningKeyAlias>
+    </PropertyGroup>
+    <ItemGroup>
+        <!-- App Icon -->
+        <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4" />
+
+        <!-- Splash Screen -->
+        <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#512BD4" BaseSize="128,128" />
+
+        <!-- Images -->
+        <MauiImage Include="Resources\Images\*" />
+        <MauiFont Include="Resources\Fonts\*" />
+
+        <!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
+        <MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
+        <Compile Remove="Services\iOS\LocationService.cs" />
+
+        
+      <PackageReference Include="CommunityToolkit.Diagnostics" Version="8.0.0" />
+      <PackageReference Include="CommunityToolkit.Maui" Version="1.2.0" />
+      <PackageReference Include="CommunityToolkit.Mvvm" Version="8.0.0" />
+      <PackageReference Include="ei8.Cortex.Diary.Nucleus.Client" Version="0.2.4" />
+      <PackageReference Include="neurUL.Common.Http" Version="0.1.15" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="Converters\" />
+      <None Remove="TemplateSelectors\" />
+      <None Remove="Services\iOS\" />
+    </ItemGroup>
+    <ItemGroup>
+      <Folder Include="Converters\" />
+      <Folder Include="TemplateSelectors\" />
+      <Folder Include="Services\iOS\" />
+    </ItemGroup>
+</Project>

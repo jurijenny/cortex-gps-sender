@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:gpsSender="clr-namespace:ei8.Cortex.Gps.Sender"
+             x:Class="ei8.Cortex.Gps.Sender.MainPage"
+             x:DataType="gpsSender:MainViewModel">
+    <Grid RowDefinitions="auto,auto,auto,auto,*">
+        <Button Text="{Binding LocationUpdatesEnabled, 
+                Converter={StaticResource LocationButtonTextConverter}}"
+                Command="{Binding ChangeLocationUpdatesCommand}"/>
+        <Button Grid.Row="1" Text="Upload Last Location"
+                Command="{Binding UploadLastLocationCommand}"/>
+        <Entry Grid.Row="2" Placeholder="Enter AvatarUrl"
+           Text="{Binding AvatarUrl}" />
+        <Entry Grid.Row="3" Placeholder="Enter Instantiates, GPS Neuron Id"
+           Text="{Binding InstantiatesGpsNeuronId}" />
+        <CollectionView ItemsSource="{Binding Updates}"
+                        Grid.Row="4"
+                        VerticalScrollBarVisibility="Always"
+                        ItemTemplate="{StaticResource LocationUpdatesTemplateSelector}"/>
+    
+    </Grid>
+</ContentPage>
