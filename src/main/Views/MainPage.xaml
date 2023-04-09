@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:gpsSender="clr-namespace:ei8.Cortex.Gps.Sender.ViewModels"
+             x:Class="ei8.Cortex.Gps.Sender.Views.MainPage"
+             x:DataType="gpsSender:MainViewModel">
+    <Grid RowDefinitions="auto,auto,auto,auto,auto,auto,*">
+        <Button HorizontalOptions="Center"
+                    Command="{Binding CallApiCommand}"
+                    BackgroundColor="{StaticResource Secondary}"
+                    IsEnabled="{Binding IsNotBusy}"
+                    Text="Call API" TextColor="{StaticResource Primary}"/>
+        <Button Grid.Row="1" HorizontalOptions="Center"
+                    Command="{Binding LogoutCommand}"
+                    BackgroundColor="{StaticResource Secondary}"
+                    Text="Logout" TextColor="{StaticResource Primary}"/>
+        <Button Grid.Row="2" Text="{Binding LocationUpdatesEnabled, 
+                Converter={StaticResource LocationButtonTextConverter}}"
+                Command="{Binding ChangeLocationUpdatesCommand}"/>
+        <Button Grid.Row="3" Text="Upload Last Location"
+                Command="{Binding UploadLastLocationCommand}"/>
+        <Entry Grid.Row="4" Placeholder="Enter AvatarUrl"
+           Text="{Binding AvatarUrl}" />
+        <Entry Grid.Row="5" Placeholder="Enter Instantiates, GPS Neuron Id"
+           Text="{Binding InstantiatesGpsNeuronId}" />
+        <CollectionView ItemsSource="{Binding Updates}"
+                        Grid.Row="4"
+                        VerticalScrollBarVisibility="Always"
+                        ItemTemplate="{StaticResource LocationUpdatesTemplateSelector}"/>
+    
+    </Grid>
+</ContentPage>
