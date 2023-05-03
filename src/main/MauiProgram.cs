@@ -43,9 +43,9 @@ public static class MauiProgram
         builder.Services.AddTransient<OidcClient>(sp =>
 		new OidcClient(new OidcClientOptions
 		{
-			Authority = "https://10.0.2.2:5001",
+			Authority = "https://login.fibona.cc",
 			ClientId = "mauimauefood.appclient",
-			Scope = "openid profile api1",
+			Scope = "openid profile avatarapi",
 			RedirectUri = "mauimauefoodclient://",
 			PostLogoutRedirectUri = "mauimauefoodclient://",
 			ClientSecret = "SuperSecretPassword",
@@ -58,12 +58,14 @@ public static class MauiProgram
 
     public static HttpClient GetInsecureHttpClient()
     {
-#if ANDROID
-        var handler = new CustomAndroidMessageHandler();
-#else
-			var handler = new HttpClientHandler();
-#endif
-        handler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => { return true; };
+        // #if ANDROID
+        // TODO: var handler = new CustomAndroidMessageHandler();
+        // #else
+        var handler = new HttpClientHandler
+        {
+            // #endif
+            ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => { return true; }
+        };
         HttpClient client = new HttpClient(handler);
         return client;
     }

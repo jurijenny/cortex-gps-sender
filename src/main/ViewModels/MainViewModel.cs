@@ -150,7 +150,7 @@ namespace ei8.Cortex.Gps.Sender.ViewModels
 
                 IsBusy = true;
                 this.httpClient.SetBearerToken(this.token);
-                var response = await this.httpClient.GetAsync("https://10.0.2.2:6001/identity");
+                var response = await this.httpClient.GetAsync("https://192.168.1.110:6001/identity");
                 if (!response.IsSuccessStatusCode)
                     await Shell.Current.DisplayAlert("Api Error", $"{response.StatusCode}", "ok");
 
