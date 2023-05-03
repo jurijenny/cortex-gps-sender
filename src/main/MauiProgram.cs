@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Maui;
 using ei8.Cortex.Diary.Nucleus.Client.In;
+using ei8.Cortex.Gps.Sender.Services;
 using ei8.Cortex.Gps.Sender.ViewModels;
 using ei8.Cortex.Gps.Sender.ViewModels.Auth;
 using ei8.Cortex.Gps.Sender.Views;
@@ -32,6 +33,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<ITerminalClient, HttpTerminalClient>();
 
         builder.Services.AddSingleton<IConnectivity>(Connectivity.Current);
+        builder.Services.AddSingleton<ILocationService, LocationService>();
 		builder.Services.AddSingleton<LoginViewModel>();
 		builder.Services.AddSingleton<MainViewModel>();
 		builder.Services.AddSingleton<Views.Auth.LoginPage>();

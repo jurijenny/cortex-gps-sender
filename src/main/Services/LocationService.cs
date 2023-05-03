@@ -2,7 +2,7 @@ using ei8.Cortex.Gps.Sender.Models;
 
 namespace ei8.Cortex.Gps.Sender.Services;
 
-public partial class LocationService
+public partial class LocationService : ILocationService
 {
     public event EventHandler<LocationModel> LocationChanged;
     public event EventHandler<string> StatusChanged;

@@ -7,13 +7,14 @@ using ei8.Cortex.Gps.Sender.Models;
 using IdentityModel.OidcClient;
 using IdentityModel.Client;
 using System.Text.Json;
+using ei8.Cortex.Gps.Sender.Services;
 
 namespace ei8.Cortex.Gps.Sender.ViewModels
 {
     [QueryProperty("Token", "Token")]
     public partial class MainViewModel : ViewModelBase
     {
-        private readonly Services.LocationService locationService;
+        private readonly ILocationService locationService;
         private readonly INeuronClient neuronClient;
         private readonly ITerminalClient terminalClient;
         protected readonly OidcClient oidcClient;
@@ -32,13 +33,13 @@ namespace ei8.Cortex.Gps.Sender.ViewModels
         [ObservableProperty]
         private string avatarUrl;
 
-        public MainViewModel(INeuronClient neuronClient, ITerminalClient terminalClient, OidcClient client, HttpClient httpclient, IConnectivity connectivity)
+        public MainViewModel(ILocationService locationService, INeuronClient neuronClient, ITerminalClient terminalClient, OidcClient client, HttpClient httpclient, IConnectivity connectivity)
         {
             this.oidcClient = client;
             this.httpClient = httpclient;
             this.connectivity = connectivity;
             Updates = new();
-            this.locationService = new();
+            this.locationService = locationService;
             this.neuronClient = neuronClient;
             this.terminalClient = terminalClient;
         }
