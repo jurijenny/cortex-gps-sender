@@ -4,7 +4,7 @@ using IBrowser = IdentityModel.OidcClient.Browser.IBrowser;
 
 namespace ei8.Cortex.Gps.Sender;
 
-internal class WebAuthenticatorBrowser : IBrowser
+public class WebAuthenticatorBrowser : IBrowser
 {
     public async Task<BrowserResult> InvokeAsync(BrowserOptions options, CancellationToken cancellationToken = default)
     {

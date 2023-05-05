@@ -19,8 +19,6 @@
                 Command="{Binding ChangeLocationUpdatesCommand}"/>
         <Button Grid.Row="3" Text="Upload Last Location"
                 Command="{Binding UploadLastLocationCommand}"/>
-        <Entry Grid.Row="4" Placeholder="Enter AvatarUrl"
-           Text="{Binding AvatarUrl}" />
         <Entry Grid.Row="5" Placeholder="Enter Instantiates, GPS Neuron Id"
            Text="{Binding InstantiatesGpsNeuronId}" />
         <CollectionView ItemsSource="{Binding Updates}"

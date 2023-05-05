@@ -18,7 +18,14 @@
                        HorizontalTextAlignment="Center"
                        Text="Please login to continue"/>
             </VerticalStackLayout>
+
+            <Label Margin="10,20,10,20" 
+                HorizontalOptions="Center" TextColor="{StaticResource Primary}" 
+                       FontSize="20" Text="Avatar URL"/>
             
+            <Entry Grid.Row="4" Placeholder="Enter AvatarUrl"
+                Text="{Binding AvatarUrl}" />
+
             <Label Margin="10,20,10,20" 
                 HorizontalOptions="Center" TextColor="{StaticResource Primary}" 
                        FontSize="20" Text="Login to IdentityServer"/>

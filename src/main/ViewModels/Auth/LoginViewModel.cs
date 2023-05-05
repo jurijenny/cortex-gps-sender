@@ -1,4 +1,6 @@
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using ei8.Cortex.Gps.Sender.Services;
 using ei8.Cortex.Gps.Sender.Views;
 using IdentityModel.OidcClient;
 
@@ -6,12 +8,24 @@ namespace ei8.Cortex.Gps.Sender.ViewModels.Auth;
 
 public partial class LoginViewModel : ViewModelBase
 {
-    protected readonly OidcClient _client;
-    IConnectivity _connectivity;
-    public LoginViewModel(OidcClient client, IConnectivity connectivity)
+    private IUrlService urlService;
+    private IOidcClientService oidcClientService;
+    private IConnectivity connectivity;
+    private ITokenProviderService tokenProviderService;
+    public LoginViewModel(IUrlService urlService, IOidcClientService oidcClientService, IConnectivity connectivity, ITokenProviderService tokenProviderService)
     {
-        _client = client;
-        _connectivity = connectivity;
+        this.urlService = urlService;
+        this.oidcClientService = oidcClientService;
+        this.connectivity = connectivity;
+        this.tokenProviderService = tokenProviderService;
+    }
+
+    [ObservableProperty]
+    private string avatarUrl;
+
+    partial void OnAvatarUrlChanged(string value)
+    {
+        this.urlService.AvatarUrl = value;
     }
 
     [RelayCommand]
@@ -22,21 +36,25 @@ public partial class LoginViewModel : ViewModelBase
         
         try
         {
-            if(_connectivity.NetworkAccess is not NetworkAccess.Internet)
+            if(connectivity.NetworkAccess is not NetworkAccess.Internet)
             {
                 await Shell.Current.DisplayAlert("Internet Offline", "Please check your internet connection", "Ok");
                 return;
             }
             
-            var loginResult = await _client.LoginAsync(new LoginRequest());
+            var loginResult = await oidcClientService.GetOidcClient().LoginAsync(new LoginRequest());
             if (loginResult.IsError)
                 return;
-            
-            await Shell.Current.DisplayAlert("Login Result", "Access Token is:\n\n" + loginResult.AccessToken, "Close");
+
+            this.tokenProviderService.AccessToken = loginResult.AccessToken;
+            this.tokenProviderService.ExpiresAt = loginResult.AccessTokenExpiration;
+            this.tokenProviderService.RefreshToken = loginResult.RefreshToken;
+
+            await Shell.Current.DisplayAlert("Login Result", "Access Token is:\n\n" + this.tokenProviderService.AccessToken, "Close");
             await Shell.Current.GoToAsync($"{nameof(MainPage)}",true,
                 new Dictionary<string, object>
                 {
-                    {"Token", loginResult.AccessToken }
+                    {"Token", this.tokenProviderService.AccessToken }
                 });
             
             // Application.Current.MainPage = new MainPage();

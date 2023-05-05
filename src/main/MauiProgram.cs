@@ -34,41 +34,17 @@ public static class MauiProgram
 
         builder.Services.AddSingleton<IConnectivity>(Connectivity.Current);
         builder.Services.AddSingleton<ILocationService, LocationService>();
+        builder.Services.AddSingleton<IUrlService, UrlService>();
+        builder.Services.AddSingleton<ITokenProviderService, TokenProviderService>();
 		builder.Services.AddSingleton<LoginViewModel>();
 		builder.Services.AddSingleton<MainViewModel>();
 		builder.Services.AddSingleton<Views.Auth.LoginPage>();
 		builder.Services.AddSingleton<MainPage>();
 		
-		builder.Services.AddSingleton<HttpClient>(GetInsecureHttpClient());
+		builder.Services.AddSingleton<HttpClient>(OidcClientService.GetInsecureHttpClient());
         builder.Services.AddTransient<WebAuthenticatorBrowser>();
-        
-        builder.Services.AddTransient<OidcClient>(sp =>
-		new OidcClient(new OidcClientOptions
-		{
-			Authority = "https://login.fibona.cc",
-			ClientId = "mauimauefood.appclient",
-			Scope = "openid profile avatarapi",
-			RedirectUri = "mauimauefoodclient://",
-			PostLogoutRedirectUri = "mauimauefoodclient://",
-			ClientSecret = "SuperSecretPassword",
-			HttpClientFactory = options => GetInsecureHttpClient(), 
-			Browser = sp.GetRequiredService<WebAuthenticatorBrowser>()
-        }));
+        builder.Services.AddTransient<IOidcClientService, OidcClientService>();
 
         return builder.Build();
-    }
-
-    public static HttpClient GetInsecureHttpClient()
-    {
-        // #if ANDROID
-        // TODO: var handler = new CustomAndroidMessageHandler();
-        // #else
-        var handler = new HttpClientHandler
-        {
-            // #endif
-            ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => { return true; }
-        };
-        HttpClient client = new HttpClient(handler);
-        return client;
     }
 }

@@ -11,18 +11,16 @@ using ei8.Cortex.Gps.Sender.Services;
 
 namespace ei8.Cortex.Gps.Sender.ViewModels
 {
-    [QueryProperty("Token", "Token")]
     public partial class MainViewModel : ViewModelBase
     {
+        private readonly IUrlService urlService;
         private readonly ILocationService locationService;
         private readonly INeuronClient neuronClient;
         private readonly ITerminalClient terminalClient;
-        protected readonly OidcClient oidcClient;
+        protected readonly IOidcClientService oidcClientService;
         protected readonly HttpClient httpClient;
         protected IConnectivity connectivity;
-
-        [ObservableProperty] 
-        private string token;
+        private readonly ITokenProviderService tokenProviderService;
 
         [ObservableProperty]
         private bool _locationUpdatesEnabled;
@@ -30,18 +28,17 @@ namespace ei8.Cortex.Gps.Sender.ViewModels
         [ObservableProperty]
         private string instantiatesGpsNeuronId;
 
-        [ObservableProperty]
-        private string avatarUrl;
-
-        public MainViewModel(ILocationService locationService, INeuronClient neuronClient, ITerminalClient terminalClient, OidcClient client, HttpClient httpclient, IConnectivity connectivity)
+        public MainViewModel(IUrlService urlService, ILocationService locationService, INeuronClient neuronClient, ITerminalClient terminalClient, IOidcClientService oidcClientService, HttpClient httpclient, IConnectivity connectivity, ITokenProviderService tokenProviderService)
         {
-            this.oidcClient = client;
+            this.urlService = urlService;
+            this.oidcClientService = oidcClientService;
             this.httpClient = httpclient;
             this.connectivity = connectivity;
             Updates = new();
             this.locationService = locationService;
             this.neuronClient = neuronClient;
             this.terminalClient = terminalClient;
+            this.tokenProviderService = tokenProviderService;
         }
 
         public ObservableCollection<object> Updates { get; }
@@ -65,28 +62,27 @@ namespace ei8.Cortex.Gps.Sender.ViewModels
             {
                 var neuronId = Guid.NewGuid().ToString();
                 var instantiatesGps = this.InstantiatesGpsNeuronId; 
-                var avatarUrl = this.AvatarUrl; 
                 string regionId = null;
                 try
                 {
                     var task = Task.Run(async () => await this.neuronClient.CreateNeuron(
-                        avatarUrl,
+                        this.urlService.AvatarUrl + "/",
                         neuronId.ToString(),
                         o.Latitude + ", " + o.Longitude,
                         regionId,
                         string.Empty,
-                        string.Empty
+                        this.tokenProviderService.AccessToken
                         ));
                     task.GetAwaiter().GetResult();
                     task = Task.Run(async () => await this.terminalClient.CreateTerminal(
-                        avatarUrl,
+                        this.urlService.AvatarUrl,
                         Guid.NewGuid().ToString(),
                         neuronId,
                         instantiatesGps,
                         neurUL.Cortex.Common.NeurotransmitterEffect.Excite,
                         1f,
                         string.Empty,
-                        String.Empty
+                        this.tokenProviderService.AccessToken
                         ));
                     task.GetAwaiter().GetResult();
                 }
@@ -126,7 +122,7 @@ namespace ei8.Cortex.Gps.Sender.ViewModels
         {
             try
             {
-                var loginResult = await this.oidcClient.LogoutAsync(new LogoutRequest());
+                var loginResult = await this.oidcClientService.GetOidcClient().LogoutAsync(new LogoutRequest());
                 await Shell.Current.DisplayAlert("Result", "Success", "OK");
                 await Shell.Current.GoToAsync("..");
             }
@@ -150,7 +146,7 @@ namespace ei8.Cortex.Gps.Sender.ViewModels
                 }
 
                 IsBusy = true;
-                this.httpClient.SetBearerToken(this.token);
+                this.httpClient.SetBearerToken(this.tokenProviderService.AccessToken);
                 var response = await this.httpClient.GetAsync("https://192.168.1.110:6001/identity");
                 if (!response.IsSuccessStatusCode)
                     await Shell.Current.DisplayAlert("Api Error", $"{response.StatusCode}", "ok");
