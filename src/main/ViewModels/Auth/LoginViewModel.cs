@@ -41,33 +41,35 @@ public partial class LoginViewModel : ViewModelBase
                 await Shell.Current.DisplayAlert("Internet Offline", "Please check your internet connection", "Ok");
                 return;
             }
-            
-            var loginResult = await oidcClientService.GetOidcClient().LoginAsync(new LoginRequest());
+
+            this.oidcClientService.ClearOidcClient();
+            var loginResult = await this.oidcClientService.GetOidcClient().LoginAsync(new LoginRequest());
             if (loginResult.IsError)
+            {
+                await Shell.Current.DisplayAlert("Error", loginResult.Error, "Ok");
                 return;
+            }
 
             this.tokenProviderService.AccessToken = loginResult.AccessToken;
             this.tokenProviderService.ExpiresAt = loginResult.AccessTokenExpiration;
             this.tokenProviderService.RefreshToken = loginResult.RefreshToken;
 
-            await Shell.Current.DisplayAlert("Login Result", "Access Token is:\n\n" + this.tokenProviderService.AccessToken, "Close");
-            await Shell.Current.GoToAsync($"{nameof(MainPage)}",true,
-                new Dictionary<string, object>
-                {
-                    {"Token", this.tokenProviderService.AccessToken }
-                });
-            
-            // Application.Current.MainPage = new MainPage();
+            await Shell.Current.GoToAsync($"{nameof(MainPage)}",true);
         }
         catch (Exception ex)
         {
-            await Shell.Current.DisplayAlert("Error", ex.ToString(), "ok");
+            await Shell.Current.DisplayAlert("Error", ex.ToString(), "Ok");
         }
         finally
         {
             IsBusy = false;
-
         }
+    }
+
+    [RelayCommand]
+    async Task ShowSettingsAsync()
+    {
+        await Shell.Current.GoToAsync($"{nameof(SettingsPage)}", true);
     }
     
 }

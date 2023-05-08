@@ -2,7 +2,7 @@
 using Android.Content;
 using Android.Content.PM;
 
-namespace MauiMaueFood.Client.Platforms.Android;
+namespace ei8.Cortex.Gps.Sender.Platforms.Android.Auth;
 
 [Activity(NoHistory = true, LaunchMode = LaunchMode.SingleTop, Exported = true)]
 [IntentFilter(new[] { Intent.ActionView },
@@ -10,5 +10,5 @@ namespace MauiMaueFood.Client.Platforms.Android;
     DataScheme = CALLBACK_SCHEME)]
 public class GpsSenderWebAuthenticatorCallbackActivity : WebAuthenticatorCallbackActivity
 {
-    const string CALLBACK_SCHEME = "mauimauefoodclient";
+    const string CALLBACK_SCHEME = "ei8cortexgpssender";
 }

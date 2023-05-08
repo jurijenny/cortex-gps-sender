@@ -11,11 +11,13 @@ namespace ei8.Cortex.Gps.Sender.Services
     {
         private readonly IUrlService urlService;
         private OidcClient oidcClient;
+        private readonly ISettingsService settingsService;
         private readonly WebAuthenticatorBrowser webAuthenticatorBrowser;
 
-        public OidcClientService(IUrlService urlService, WebAuthenticatorBrowser webAuthenticatorBrowser)
+        public OidcClientService(IUrlService urlService, ISettingsService settingsService, WebAuthenticatorBrowser webAuthenticatorBrowser)
         {
             this.urlService = urlService;
+            this.settingsService = settingsService;
             this.webAuthenticatorBrowser = webAuthenticatorBrowser;
         }
 
@@ -26,13 +28,11 @@ namespace ei8.Cortex.Gps.Sender.Services
                 this.oidcClient = new OidcClient(new OidcClientOptions
                 {
                     Authority = this.urlService.Authority,
-                    // TODO: Use proper values
-                    ClientId = "mauimauefood.appclient",
+                    ClientId = $"ei8.Cortex.Gps.Sender-{this.urlService.AvatarName}",
                     Scope = "openid profile avatarapi",
-                    RedirectUri = "mauimauefoodclient://",
-                    PostLogoutRedirectUri = "mauimauefoodclient://",
-                    // TODO: transfer to login page "advanced"
-                    ClientSecret = "SuperSecretPassword",
+                    RedirectUri = "ei8cortexgpssender://",
+                    PostLogoutRedirectUri = "ei8cortexgpssender://",
+                    ClientSecret = this.settingsService.ClientSecret,
                     HttpClientFactory = options => GetInsecureHttpClient(),
                     Browser = this.webAuthenticatorBrowser
                 });
@@ -53,6 +53,11 @@ namespace ei8.Cortex.Gps.Sender.Services
             };
             HttpClient client = new HttpClient(handler);
             return client;
+        }
+
+        public void ClearOidcClient()
+        {
+            this.oidcClient = null;
         }
     }
 }

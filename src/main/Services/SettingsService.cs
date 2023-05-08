@@ -6,12 +6,9 @@ using System.Threading.Tasks;
 
 namespace ei8.Cortex.Gps.Sender.Services
 {
-    public interface IUrlService
+    public class SettingsService : ISettingsService
     {
-        string AvatarUrl { get; set; }
-
-        string Authority { get; }
-
-        string AvatarName { get; }
+        public string ClientSecret { get; set; }
+        public string InstantiatesGpsNeuronId { get; set; }
     }
 }

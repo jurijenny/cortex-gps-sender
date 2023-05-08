@@ -7,7 +7,7 @@ using Android.Runtime;
 [assembly: UsesFeature("android.hardware.location.gps", Required = false)]
 [assembly: UsesFeature("android.hardware.location.network", Required = false)]
 
-namespace ei8.Cortex.Gps.Sender;
+namespace ei8.Cortex.Gps.Sender.Platforms.Android;
 
 [Application]
 public class MainApplication : MauiApplication

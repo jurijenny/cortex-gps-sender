@@ -33,8 +33,14 @@
             <Button Margin="100,20,100,20" 
                     Command="{Binding LoginCommand}"
                     IsEnabled="{Binding IsNotBusy}"
+                    BackgroundColor="{StaticResource Primary}"
+                    Text="Login" TextColor="{StaticResource White}"/>
+
+            <Button Margin="100,20,100,20" 
+                    Command="{Binding ShowSettingsCommand}"
+                    IsEnabled="{Binding IsNotBusy}"
                     BackgroundColor="{StaticResource Secondary}"
-                    Text="Login" TextColor="{StaticResource Primary}"/>
+                    Text="Settings" TextColor="{StaticResource Primary}"/>
 
         </VerticalStackLayout>
         </ScrollView>

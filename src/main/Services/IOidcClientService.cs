@@ -10,5 +10,7 @@ namespace ei8.Cortex.Gps.Sender.Services
     public interface IOidcClientService
     {
         OidcClient GetOidcClient();
+
+        void ClearOidcClient();
     }
 }

@@ -36,9 +36,12 @@ public static class MauiProgram
         builder.Services.AddSingleton<ILocationService, LocationService>();
         builder.Services.AddSingleton<IUrlService, UrlService>();
         builder.Services.AddSingleton<ITokenProviderService, TokenProviderService>();
-		builder.Services.AddSingleton<LoginViewModel>();
-		builder.Services.AddSingleton<MainViewModel>();
+        builder.Services.AddSingleton<ISettingsService, SettingsService>();
+        builder.Services.AddSingleton<LoginViewModel>();
+        builder.Services.AddSingleton<SettingsViewModel>();
+        builder.Services.AddSingleton<MainViewModel>();
 		builder.Services.AddSingleton<Views.Auth.LoginPage>();
+        builder.Services.AddSingleton<SettingsPage>();
 		builder.Services.AddSingleton<MainPage>();
 		
 		builder.Services.AddSingleton<HttpClient>(OidcClientService.GetInsecureHttpClient());

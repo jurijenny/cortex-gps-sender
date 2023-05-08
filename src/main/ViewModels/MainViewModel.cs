@@ -13,6 +13,7 @@ namespace ei8.Cortex.Gps.Sender.ViewModels
 {
     public partial class MainViewModel : ViewModelBase
     {
+        private readonly ISettingsService settingsService;
         private readonly IUrlService urlService;
         private readonly ILocationService locationService;
         private readonly INeuronClient neuronClient;
@@ -25,11 +26,9 @@ namespace ei8.Cortex.Gps.Sender.ViewModels
         [ObservableProperty]
         private bool _locationUpdatesEnabled;
 
-        [ObservableProperty]
-        private string instantiatesGpsNeuronId;
-
-        public MainViewModel(IUrlService urlService, ILocationService locationService, INeuronClient neuronClient, ITerminalClient terminalClient, IOidcClientService oidcClientService, HttpClient httpclient, IConnectivity connectivity, ITokenProviderService tokenProviderService)
+        public MainViewModel(ISettingsService settingsService, IUrlService urlService, ILocationService locationService, INeuronClient neuronClient, ITerminalClient terminalClient, IOidcClientService oidcClientService, HttpClient httpclient, IConnectivity connectivity, ITokenProviderService tokenProviderService)
         {
+            this.settingsService = settingsService;
             this.urlService = urlService;
             this.oidcClientService = oidcClientService;
             this.httpClient = httpclient;
@@ -54,14 +53,13 @@ namespace ei8.Cortex.Gps.Sender.ViewModels
         }
 
         [RelayCommand]
-        public void UploadLastLocation()
+        public async Task UploadLastLocationAsync()
         {
             var o = this.Updates.Last() as LocationModel;
 
             if (o != null)
             {
                 var neuronId = Guid.NewGuid().ToString();
-                var instantiatesGps = this.InstantiatesGpsNeuronId; 
                 string regionId = null;
                 try
                 {
@@ -75,10 +73,10 @@ namespace ei8.Cortex.Gps.Sender.ViewModels
                         ));
                     task.GetAwaiter().GetResult();
                     task = Task.Run(async () => await this.terminalClient.CreateTerminal(
-                        this.urlService.AvatarUrl,
+                        this.urlService.AvatarUrl + "/",
                         Guid.NewGuid().ToString(),
                         neuronId,
-                        instantiatesGps,
+                        this.settingsService.InstantiatesGpsNeuronId,
                         neurUL.Cortex.Common.NeurotransmitterEffect.Excite,
                         1f,
                         string.Empty,
@@ -88,7 +86,7 @@ namespace ei8.Cortex.Gps.Sender.ViewModels
                 }
                 catch (Exception ex)
                 {
-                    var exc = ex;
+                    await Shell.Current.DisplayAlert("Error", ex.ToString(), "Ok");
                 }
             }
         }

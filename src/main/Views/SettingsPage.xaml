@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodel="clr-namespace:ei8.Cortex.Gps.Sender.ViewModels"
+             x:DataType="viewmodel:SettingsViewModel"
+             x:Class="ei8.Cortex.Gps.Sender.Views.SettingsPage"
+             Title="SettingsPage">
+    <VerticalStackLayout>
+        <Label Margin="10,20,10,20" 
+                HorizontalOptions="Center" TextColor="{StaticResource Primary}" 
+                       FontSize="20" Text="Client Secret"/>
+
+        <Entry Grid.Row="4" Placeholder="Enter Client Secret"
+                Text="{Binding ClientSecret}" />
+
+        <Label Margin="10,20,10,20" 
+                HorizontalOptions="Center" TextColor="{StaticResource Primary}" 
+                       FontSize="20" Text="Instantiates GPS Neuron Id"/>
+
+        <Entry Grid.Row="4" Placeholder="Enter Instantiates GPS Neuron Id"
+                Text="{Binding InstantiatesGpsNeuronId}" />
+        
+        <Button Margin="100,20,100,20" 
+                    Command="{Binding SaveCommand}"
+                    IsEnabled="{Binding IsNotBusy}"
+                    BackgroundColor="{StaticResource Secondary}"
+                    Text="Save" TextColor="{StaticResource Primary}"/>
+    </VerticalStackLayout>
+</ContentPage>
