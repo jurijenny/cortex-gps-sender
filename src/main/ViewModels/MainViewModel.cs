@@ -8,11 +8,14 @@ using IdentityModel.OidcClient;
 using IdentityModel.Client;
 using System.Text.Json;
 using ei8.Cortex.Gps.Sender.Services;
+using System.Diagnostics;
+using System.Reflection;
 
 namespace ei8.Cortex.Gps.Sender.ViewModels
 {
     public partial class MainViewModel : ViewModelBase
     {
+        // field
         private readonly ISettingsService settingsService;
         private readonly IUrlService urlService;
         private readonly ILocationService locationService;
@@ -22,11 +25,28 @@ namespace ei8.Cortex.Gps.Sender.ViewModels
         protected readonly HttpClient httpClient;
         protected IConnectivity connectivity;
         private readonly ITokenProviderService tokenProviderService;
+        private Timer timer;
+        private const int interval = 10000; // 1secs
+
+        // property
+        public ObservableCollection<object> Updates { get; }
 
         [ObservableProperty]
         private bool _locationUpdatesEnabled;
 
-        public MainViewModel(ISettingsService settingsService, IUrlService urlService, ILocationService locationService, INeuronClient neuronClient, ITerminalClient terminalClient, IOidcClientService oidcClientService, HttpClient httpclient, IConnectivity connectivity, ITokenProviderService tokenProviderService)
+        public SettingsViewModel settingsViewModel;
+
+        // init
+        public MainViewModel(ISettingsService settingsService, 
+                            IUrlService urlService, 
+                            ILocationService locationService,
+                            INeuronClient neuronClient, 
+                            ITerminalClient terminalClient, 
+                            IOidcClientService oidcClientService, 
+                            HttpClient httpclient, 
+                            IConnectivity connectivity, 
+                            ITokenProviderService tokenProviderService)
+
         {
             this.settingsService = settingsService;
             this.urlService = urlService;
@@ -38,10 +58,44 @@ namespace ei8.Cortex.Gps.Sender.ViewModels
             this.neuronClient = neuronClient;
             this.terminalClient = terminalClient;
             this.tokenProviderService = tokenProviderService;
+            
         }
 
-        public ObservableCollection<object> Updates { get; }
-        
+        public async void Timer_tick(object state)
+        {
+            try
+            {
+                if (IsCurrentTimeInRange())
+                {
+                    await UploadLastLocationCoreAsync();
+                    Console.WriteLine("Current time is " + DateTime.Now.ToString("HH:mm:ss"));
+                }
+            }
+            catch (TargetInvocationException ex)
+            {
+                Debug.WriteLine(ex);
+            }
+        }
+
+        public bool IsCurrentTimeInRange()
+        {
+            DateTime currentTime = DateTime.Now;
+            Debug.WriteLine("===================System Time is " + currentTime + "========================");
+            return currentTime >= this.settingsService.StartTime && currentTime <= this.settingsService.EndTime;
+        }
+
+        [RelayCommand]
+        public async Task StartTimerAsync()
+        {
+            timer = new Timer(Timer_tick, null, 0, interval);
+            //await Task.Run(() =>
+            //{
+            //    timer = new Timer(Timer_tick, null, 0, interval);
+            //});
+
+        }
+
+
         [RelayCommand]
         public void ChangeLocationUpdates()
         {
@@ -55,24 +109,33 @@ namespace ei8.Cortex.Gps.Sender.ViewModels
         [RelayCommand]
         public async Task UploadLastLocationAsync()
         {
+            await UploadLastLocationCoreAsync();
+        }
+
+        private async Task UploadLastLocationCoreAsync()
+        {
+            Debug.WriteLine("===================-------------UploadLastLocation1-------------=====================");
             var o = this.Updates.Last() as LocationModel;
 
             if (o != null)
             {
+                Debug.WriteLine("===================-------------UploadLastLocation2-------------=====================");
                 var neuronId = Guid.NewGuid().ToString();
                 string regionId = null;
                 try
                 {
-                    var task = Task.Run(async () => await this.neuronClient.CreateNeuron(
+                    Debug.WriteLine("===================-------------UploadLastLocation3-------------=====================");
+                    await this.neuronClient.CreateNeuron(
                         this.urlService.AvatarUrl + "/",
                         neuronId.ToString(),
                         o.Latitude + ", " + o.Longitude,
                         regionId,
                         string.Empty,
                         this.tokenProviderService.AccessToken
-                        ));
-                    task.GetAwaiter().GetResult();
-                    task = Task.Run(async () => await this.terminalClient.CreateTerminal(
+                        );
+                    
+                    Debug.WriteLine("===================-------------UploadLastLocation4-------------=====================");
+                    await this.terminalClient.CreateTerminal(
                         this.urlService.AvatarUrl + "/",
                         Guid.NewGuid().ToString(),
                         neuronId,
@@ -81,8 +144,8 @@ namespace ei8.Cortex.Gps.Sender.ViewModels
                         1f,
                         string.Empty,
                         this.tokenProviderService.AccessToken
-                        ));
-                    task.GetAwaiter().GetResult();
+                        );
+                    
                 }
                 catch (Exception ex)
                 {

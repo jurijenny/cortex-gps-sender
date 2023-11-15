@@ -11,5 +11,9 @@ namespace ei8.Cortex.Gps.Sender.Services
         string ClientSecret { get; set; }
 
         string InstantiatesGpsNeuronId { get; set; }
+
+        DateTime? StartTime { get; set; }
+
+        DateTime? EndTime { get; set; }
     }
 }
