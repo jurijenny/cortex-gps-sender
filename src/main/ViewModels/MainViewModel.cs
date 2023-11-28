@@ -8,6 +8,8 @@ using IdentityModel.OidcClient;
 using IdentityModel.Client;
 using System.Text.Json;
 using ei8.Cortex.Gps.Sender.Services;
+using System.Reflection;
+using System.Diagnostics;
 
 namespace ei8.Cortex.Gps.Sender.ViewModels
 {
@@ -22,97 +24,52 @@ namespace ei8.Cortex.Gps.Sender.ViewModels
         protected readonly HttpClient httpClient;
         protected IConnectivity connectivity;
         private readonly ITokenProviderService tokenProviderService;
+        private Timer timer;
+        private const int interval = 10000; // FIXME: It need to be able to set interval on settingsPage
+
+        public ObservableCollection<object> Updates { get; }
+        public SettingsViewModel settingsViewModel;
 
         [ObservableProperty]
         private bool _locationUpdatesEnabled;
 
-        public MainViewModel(ISettingsService settingsService, IUrlService urlService, ILocationService locationService, INeuronClient neuronClient, ITerminalClient terminalClient, IOidcClientService oidcClientService, HttpClient httpclient, IConnectivity connectivity, ITokenProviderService tokenProviderService)
+        public MainViewModel(ISettingsService settingsService,
+                            IUrlService urlService,
+                            ILocationService locationService,
+                            INeuronClient neuronClient,
+                            ITerminalClient terminalClient,
+                            IOidcClientService oidcClientService,
+                            HttpClient httpclient,
+                            IConnectivity connectivity,
+                            ITokenProviderService tokenProviderService)
+
         {
             this.settingsService = settingsService;
             this.urlService = urlService;
             this.oidcClientService = oidcClientService;
             this.httpClient = httpclient;
             this.connectivity = connectivity;
-            Updates = new();
             this.locationService = locationService;
             this.neuronClient = neuronClient;
             this.terminalClient = terminalClient;
             this.tokenProviderService = tokenProviderService;
+            Updates = new();
         }
 
-        public ObservableCollection<object> Updates { get; }
-        
         [RelayCommand]
         public void ChangeLocationUpdates()
         {
             this.LocationUpdatesEnabled = !this.LocationUpdatesEnabled;
             if (this.LocationUpdatesEnabled)
-                StartLocationUpdates();
+                this.StartLocationUpdates();
             else
-                StopLocationUpdates();
+                this.StopLocationUpdates();
         }
 
-        [RelayCommand]
-        public async Task UploadLastLocationAsync()
+        public bool IsCurrentTimeInRange()
         {
-            var o = this.Updates.Last() as LocationModel;
-
-            if (o != null)
-            {
-                var neuronId = Guid.NewGuid().ToString();
-                string regionId = null;
-                try
-                {
-                    var task = Task.Run(async () => await this.neuronClient.CreateNeuron(
-                        this.urlService.AvatarUrl + "/",
-                        neuronId.ToString(),
-                        o.Latitude + ", " + o.Longitude,
-                        regionId,
-                        string.Empty,
-                        this.tokenProviderService.AccessToken
-                        ));
-                    task.GetAwaiter().GetResult();
-                    task = Task.Run(async () => await this.terminalClient.CreateTerminal(
-                        this.urlService.AvatarUrl + "/",
-                        Guid.NewGuid().ToString(),
-                        neuronId,
-                        this.settingsService.InstantiatesGpsNeuronId,
-                        neurUL.Cortex.Common.NeurotransmitterEffect.Excite,
-                        1f,
-                        string.Empty,
-                        this.tokenProviderService.AccessToken
-                        ));
-                    task.GetAwaiter().GetResult();
-                }
-                catch (Exception ex)
-                {
-                    await Shell.Current.DisplayAlert("Error", ex.ToString(), "Ok");
-                }
-            }
-        }
-
-        public void StartLocationUpdates()
-        {
-            this.locationService.LocationChanged += LocationService_LocationChanged;
-            this.locationService.StatusChanged += LocationService_StatusChanged;
-            this.locationService.Initialize();
-        }
-
-        public void StopLocationUpdates()
-        {
-            this.locationService.Stop();
-            this.locationService.LocationChanged -= LocationService_LocationChanged;
-            this.locationService.StatusChanged -= LocationService_StatusChanged;
-        }
-
-        private void LocationService_StatusChanged(object sender, string e)
-        {
-            Updates.Add(e);
-        }
-            
-        private void LocationService_LocationChanged(object sender, Models.LocationModel e)
-        {
-            Updates.Add(e);            
+            DateTime currentTime = DateTime.Now;
+            return currentTime >= this.settingsService.StartTime && currentTime <= this.settingsService.EndTime;
         }
 
         [RelayCommand]
@@ -131,37 +88,85 @@ namespace ei8.Cortex.Gps.Sender.ViewModels
         }
 
         [RelayCommand]
-        async Task CallApiAsync()
+        public async Task StartTimerAsync()
         {
-            if (IsBusy)
-                return;
+            timer = new Timer(Timer_tick, null, 0, interval);
+        }
+
+        public async void Timer_tick(object state)
+        {
             try
             {
-                if (this.connectivity.NetworkAccess is not NetworkAccess.Internet)
+                if (IsCurrentTimeInRange())
                 {
-                    await Shell.Current.DisplayAlert("Internet Offline", "Check sua internet e tente novamente!", "Ok");
-                    return;
+                    await this.UploadLastLocationCoreAsync();
                 }
-
-                IsBusy = true;
-                this.httpClient.SetBearerToken(this.tokenProviderService.AccessToken);
-                var response = await this.httpClient.GetAsync("https://192.168.1.110:6001/identity");
-                if (!response.IsSuccessStatusCode)
-                    await Shell.Current.DisplayAlert("Api Error", $"{response.StatusCode}", "ok");
-
-
-                var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync()).RootElement;
-                var formatted = JsonSerializer.Serialize(doc, new JsonSerializerOptions { WriteIndented = true });
-                await Shell.Current.DisplayAlert("Token Claims", formatted, "ok");
             }
-            catch (Exception ex)
+            catch (TargetInvocationException ex)
             {
-                await Shell.Current.DisplayAlert("Error", ex.ToString(), "ok");
+                Debug.WriteLine(ex);
             }
-            finally
+        }
+
+        private async Task UploadLastLocationCoreAsync()
+        {
+            var o = this.Updates.Last() as LocationModel;
+
+            if (o != null)
             {
-                IsBusy = false;
+                var neuronId = Guid.NewGuid().ToString();
+                string regionId = null;
+                try
+                {
+                    await this.neuronClient.CreateNeuron(
+                        this.urlService.AvatarUrl + "/",
+                        neuronId.ToString(),
+                        o.Latitude + ", " + o.Longitude,
+                        regionId,
+                        string.Empty,
+                        this.tokenProviderService.AccessToken
+                        );
+
+                    await this.terminalClient.CreateTerminal(
+                        this.urlService.AvatarUrl + "/",
+                        Guid.NewGuid().ToString(),
+                        neuronId,
+                        this.settingsService.InstantiatesGpsNeuronId,
+                        neurUL.Cortex.Common.NeurotransmitterEffect.Excite,
+                        1f,
+                        string.Empty,
+                        this.tokenProviderService.AccessToken
+                        );
+
+                }
+                catch (Exception ex)
+                {
+                    await Shell.Current.DisplayAlert("Error", ex.ToString(), "Ok");
+                }
             }
+        }
+        private void LocationService_LocationChanged(object sender, Models.LocationModel e)
+        {
+            Updates.Add(e);
+        }
+
+        private void LocationService_StatusChanged(object sender, string e)
+        {
+            Updates.Add(e);
+        }
+
+        public void StartLocationUpdates()
+        {
+            this.locationService.LocationChanged += this.LocationService_LocationChanged;
+            this.locationService.StatusChanged += this.LocationService_StatusChanged;
+            this.locationService.Initialize();
+        }
+
+        public void StopLocationUpdates()
+        {
+            this.locationService.Stop();
+            this.locationService.LocationChanged -= this.LocationService_LocationChanged;
+            this.locationService.StatusChanged -= this.LocationService_StatusChanged;
         }
     }
 }

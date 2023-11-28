@@ -19,11 +19,23 @@
 
         <Entry Grid.Row="4" Placeholder="Enter Instantiates GPS Neuron Id"
                 Text="{Binding InstantiatesGpsNeuronId}" />
-        
-        <Button Margin="100,20,100,20" 
+
+        <StackLayout
+            Spacing="16">
+            <Entry 
+                x:Name="startTimeEntry" 
+                Placeholder="Start Time (HH:mm:ss)"
+                Text="{Binding StartTime}"/>
+            <Entry 
+                x:Name="endTimeEntry" 
+                Placeholder="End Time (HH:mm:ss)"
+                Text="{Binding EndTime}"/>
+
+            <Button Margin="100,20,100,20" 
                     Command="{Binding SaveCommand}"
                     IsEnabled="{Binding IsNotBusy}"
                     BackgroundColor="{StaticResource Secondary}"
                     Text="Save" TextColor="{StaticResource Primary}"/>
+        </StackLayout>
     </VerticalStackLayout>
 </ContentPage>

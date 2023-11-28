@@ -5,11 +5,6 @@
              x:Class="ei8.Cortex.Gps.Sender.Views.MainPage"
              x:DataType="gpsSender:MainViewModel">
     <Grid RowDefinitions="auto,auto,auto,auto,auto,auto,*">
-        <Button HorizontalOptions="Center"
-                    Command="{Binding CallApiCommand}"
-                    BackgroundColor="{StaticResource Secondary}"
-                    IsEnabled="{Binding IsNotBusy}"
-                    Text="Call API" TextColor="{StaticResource Primary}"/>
         <Button Grid.Row="1" HorizontalOptions="Center"
                     Command="{Binding LogoutCommand}"
                     BackgroundColor="{StaticResource Secondary}"
@@ -17,12 +12,12 @@
         <Button Grid.Row="2" Text="{Binding LocationUpdatesEnabled, 
                 Converter={StaticResource LocationButtonTextConverter}}"
                 Command="{Binding ChangeLocationUpdatesCommand}"/>
-        <Button Grid.Row="3" Text="Upload Last Location"
-                Command="{Binding UploadLastLocationCommand}"/>
+        <Button Grid.Row="4" Text="Start Timer"
+                Command="{Binding StartTimerCommand}"/>
         <CollectionView ItemsSource="{Binding Updates}"
-                        Grid.Row="4"
+                        Grid.Row="5"
                         VerticalScrollBarVisibility="Always"
                         ItemTemplate="{StaticResource LocationUpdatesTemplateSelector}"/>
-    
+
     </Grid>
 </ContentPage>

@@ -13,11 +13,7 @@ namespace ei8.Cortex.Gps.Sender.ViewModels
 {
     public partial class SettingsViewModel : ViewModelBase
     {
-        private ISettingsService settingsService;
-        public SettingsViewModel(ISettingsService settingsService)
-        {
-            this.settingsService = settingsService;
-        }
+        private readonly ISettingsService settingsService;
 
         [ObservableProperty]
         private string clientSecret;
@@ -25,12 +21,27 @@ namespace ei8.Cortex.Gps.Sender.ViewModels
         [ObservableProperty]
         private string instantiatesGpsNeuronId;
 
+        [ObservableProperty]
+        private DateTime startTime;
+
+        [ObservableProperty]
+        private DateTime endTime;
+
+        public SettingsViewModel(ISettingsService settingsService)
+        {
+            this.settingsService = settingsService;
+            this.startTime = DateTime.Now;
+            // FIXME: Fix this later
+            this.endTime = DateTime.Now.AddMinutes(2);
+        }
+
         [RelayCommand]
         public async Task SaveAsync()
         {
             this.settingsService.ClientSecret = this.ClientSecret;
             this.settingsService.InstantiatesGpsNeuronId = this.InstantiatesGpsNeuronId;
-
+            this.settingsService.StartTime = this.StartTime;
+            this.settingsService.EndTime = this.EndTime;
             await Shell.Current.GoToAsync("..", true);
         }
     }
